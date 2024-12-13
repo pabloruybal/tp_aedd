@@ -3,6 +3,7 @@
 #include <windows.h>
 #include <fstream> 
 #include <ctime>
+#include <conio.h>
 using namespace std;
 
 struct Fecha{
@@ -15,15 +16,15 @@ struct Usuarios{
 }usuario[100];
 
 void menu();
-void registro();
+void registro(int &);
 bool iniciarSesion();
 //void algoritmosNumericos();
 //void juegoSMB();
-bool existenciaNombre(Usuarios usuario[], char nombre[], int TL);
-bool validacionNombre(char nombre[]);
-bool validacionContrasenia(char contrasenia[]);
-void calculoFecha(int & dia, int & mes, int & anio);
-void cargarRegistro(char nombre[], char contrasenia[], int & TL);
+bool existenciaNombre(Usuarios [],string, int);
+bool validacionNombre(string);
+bool validacionContrasenia(string);
+void calculoFecha(int &, int &, int &);
+void cargarRegistro(string, string, int &);
 bool encontrarUyC(Usuarios usuario[], char nombre[], char contrasenia[], int & dia, int & mes, int & anio);
 
 int main(){
@@ -34,6 +35,7 @@ int main(){
 }
 	
 void menu(){
+	int TL=0;
 	int opcion;
 	bool sesion_iniciada=false;
 	
@@ -51,7 +53,7 @@ void menu(){
 		system("cls");
 		switch(opcion){
 		case 1: cout << "COMIENZA EL REGISTRO!" << endl << endl;
-				registro();
+				registro(TL);
 				break;
 		case 2: cout << "INICIO DE SESION!" << endl;
 				sesion_iniciada = iniciarSesion();
@@ -79,9 +81,7 @@ void menu(){
 	cout << "\nFin del programa" << endl;
 }
 	
-void registro(){
-	char nombre[11], contrasenia[37], contraseniaVerif[37];
-	int TL=0, entrar;
+void mostrarRequisitos() {
 	cout << "Requisitos usuario:" << endl;
 	cout << "  - Tener entre 6 y 10 caracteres." << endl;
 	cout << "  - Comenzar con una letra minuscula." << endl;
@@ -95,64 +95,95 @@ void registro(){
 	cout << "  - Tener al menos un digito." << endl;
 	cout << "  - No puede contener caracteres especiales." << endl << endl;
 	cout << " --------------------" << endl << endl;
-	cout << "Ingrese un usuario: ";
-	cin.ignore(1000, '\n');
-	cin.getline(nombre, 11, '\n');
-	cout << "Ingrese una contrasenia: ";
-	cin.getline(contrasenia, 37, '\n');
-	
-	if(existenciaNombre(usuario, nombre, TL)){
-		cout << "El usuario ya existe." << endl;
-		Sleep(1500);
-		system("cls");
-		menu();
-	}
-	else{
-		if(validacionNombre(nombre) and validacionContrasenia(contrasenia)){
-			cout << "Repita la contrasenia: ";
-			cin.getline(contraseniaVerif, 37, '\n');
-			system("cls");
-			if(strcmp(contrasenia,contraseniaVerif)==0){
-				cargarRegistro(nombre, contrasenia, TL);
-				cout << "Registro exitoso." << endl << endl;
-				while(entrar != 2 && entrar != 1){
-					cout << "¿Quieres iniciar sesion?" << endl;
-					cout << "1.- Si" << endl;
-					cout <<	"2.- No" << endl;
-					cin >> entrar;
-					system("cls");
-					switch (entrar){
-					case 1: 
-						iniciarSesion();
-						break;
-					case 2:
-						cout << "Volviendo al menu..." << endl << endl;
-						Sleep(1500);
-						system("cls");
-						break;
-					default:
-						cout << "Opcion invalida." << endl << endl;
-						Sleep(1500);
-						system("cls");
-						break;
-					}
-				}
-			}
-			else{
-				cout << "\nNo se pudo realizar el registro." << endl << endl;
-				Sleep(1500);
-				system("cls");
-				menu();
-			}
-		}
-		else{
-			cout << "\nUsuario y/o contrasenia invalidos." << endl << endl;
-			Sleep(1500);
-			system("cls");
-			menu();
-		}
-	}
 }
+
+// Función para leer contraseñas con asteriscos
+string leerContrasenia() {
+	string contrasenia;
+	char ch;
+	
+	while ((ch = _getch()) != '\r') { // '\r' es Enter
+		if (ch == '\b') { // Retroceso
+			if (!contrasenia.empty()) {
+				cout << "\b \b"; // Borra asterisco
+				contrasenia.pop_back();
+			}
+		} else {
+			contrasenia.push_back(ch);
+			cout << '*';
+		}
+	}
+	return contrasenia;
+}
+
+// Función para registrar un usuario
+void registro(int &TL) {
+	string nombre, contrasenia, contraseniaVerif;
+	int entrar;
+	
+	do {
+		system("cls");
+		mostrarRequisitos();
+		cout << "Ingrese un usuario: ";
+		getline(cin, nombre);
+		
+		if (!validacionNombre(nombre) || existenciaNombre(usuario, nombre, TL)) {
+			cout << "ERROR: Usuario no válido o ya existe." << endl;
+			system("cls");
+		}
+	} while (!validacionNombre(nombre) || existenciaNombre(usuario, nombre, TL));
+	
+	// Leer y validar contraseña
+	do {
+		system("cls");
+		mostrarRequisitos();
+		cout << "Ingrese un usuario: " << nombre << endl;
+		cout << "Ingrese una contrasenia: ";
+		contrasenia = leerContrasenia();
+		cout << endl;
+		
+		if (!validacionContrasenia(contrasenia)) {
+			cout << "ERROR: Contraseña no válida." << endl;
+			system("cls");
+		}
+	} while (!validacionContrasenia(contrasenia));
+	
+	// Confirmar contraseña
+	do {
+		cout << "Repita la contrasenia: ";
+		contraseniaVerif = leerContrasenia();
+		cout << endl;
+		
+		if (contrasenia != contraseniaVerif) {
+			cout << "ERROR: Las contraseñas no coinciden." << endl;
+		}
+	} while (contrasenia != contraseniaVerif);
+	
+	// Registro exitoso
+	cargarRegistro(nombre, contrasenia, TL);
+	cout << "Registro exitoso." << endl;
+	
+	// Opción de iniciar sesión
+	do {
+		cout << "Quieres iniciar sesion?" << endl;
+		cout << "1.- Si" << endl;
+		cout << "2.- No" << endl;
+		cin >> entrar;
+		
+		switch (entrar) {
+		case 1:
+			iniciarSesion();
+			break;
+		case 2:
+			cout << "Volviendo al menú..." << endl;
+			break;
+		default:
+			cout << "Opción inválida. Intente de nuevo." << endl;
+		}
+	} while (entrar != 1 && entrar != 2);
+	system("cls");
+}
+
 bool iniciarSesion(){
 	char nombre[11], contrasenia[37];
 	int i=0, dia, mes, anio;
@@ -173,11 +204,17 @@ bool iniciarSesion(){
 			return true;
 		}
 	}
+	return false;
 }
+	
 //void algoritmosNumericos();
+	
 //void juegoSMB();
-bool existenciaNombre(Usuarios usuario[], char nombre[], int TL){
+	
+bool existenciaNombre(Usuarios usuario[], string nombre1, int TL){
 	int i=0;
+	char nombre[11];
+	strcpy(nombre, nombre1.c_str());
 	bool encontrado=false;
 	fstream uR;
 	uR.open("Usuarios.dat", ios::binary | ios::in);
@@ -194,38 +231,53 @@ bool existenciaNombre(Usuarios usuario[], char nombre[], int TL){
 	}
 	return encontrado;
 }
-bool validacionNombre(char nombre[]){
+	
+bool validacionNombre(string usuario){
 	int largo=0, i=0, contMayus=0, contDig=0; 
-	largo = strlen(nombre);
-	bool dimension=false, inicial=false, cumple=true;
-	if(largo>=6 and largo<=10) dimension=true;
-	if(islower(nombre[0])) inicial=true;
+	largo = usuario.length();
+	bool dimension=false, inicial=false, cumple=true, esValido=false;
+	if(largo>=6 and largo<=10)
+		dimension=true;
+	if(islower(usuario[0]))
+		inicial=true;
 	while(i<largo and dimension and inicial and cumple){
-		if(isdigit(nombre[i]))	contDig++;
-		if(isupper(nombre[i]))	contMayus++;
-		if(!(isalnum(nombre[i]) or nombre[i]=='+' or nombre[i]=='-' or nombre[i]=='/' or nombre[i]=='*')) cumple=false;
+		if(isdigit(usuario[i]))
+			contDig++;
+		if(isupper(usuario[i]))
+			contMayus++;
+		if(!(isalnum(usuario[i]) or usuario[i]=='+' or usuario[i]=='-' or usuario[i]=='/' or usuario[i]=='*'))
+			cumple=false;
 		i++;
 	}
-	return (contDig<=3 and contMayus>=2 and cumple);
+	if(contDig<=3 and contMayus>=2 and cumple)
+		  esValido=true;
+	return esValido;
 }
-bool validacionContrasenia(char contrasenia[]){
-	int largo = strlen(contrasenia);
+	
+bool validacionContrasenia(string contrasenia){
+	int largo = contrasenia.length();
 	bool dimension=false, caracteres=true, digito=false, mayuscula=false, minuscula=false;
 	
-	if(6<=largo and largo<=32) dimension=true;
+	if(6<=largo and largo<=32)
+		dimension=true;
 	
-	for(int i=0; i<largo; i++)
-		if(!isalnum(contrasenia[i])) caracteres=false;
-	
+	for(int i=0; i<largo; i++){
+		if(!isalnum(contrasenia[i]))
+			caracteres=false;
+	}
 	if(dimension and caracteres){
 		for(int i=0; i<largo; i++){
-			if(isdigit(contrasenia[i]))	digito=true;
-			if(isupper(contrasenia[i]))	mayuscula=true;
-			if(islower(contrasenia[i]))	minuscula=true;
+			if(isdigit(contrasenia[i]))
+				digito=true;
+			if(isupper(contrasenia[i]))
+				mayuscula=true;
+			if(islower(contrasenia[i]))
+				minuscula=true;
 		}
 	}
 	return (digito and mayuscula and minuscula);
 }
+	
 void calculoFecha(int & dia, int & mes, int & anio){
 	time_t fechaHoy = time(nullptr);
 	tm *fechaLocal = localtime(&fechaHoy);
@@ -233,8 +285,12 @@ void calculoFecha(int & dia, int & mes, int & anio){
 	mes = fechaLocal->tm_mon + 1;
 	anio = 1900 + fechaLocal->tm_year;
 }
-void cargarRegistro(char nombre[], char contrasenia[], int & TL){
+	
+void cargarRegistro(string nombre1, string contrasenia1, int & TL){
 	int dia, mes, anio;
+	char nombre[11], contrasenia[37];
+	strcpy(nombre, nombre1.c_str());
+	strcpy(contrasenia, contrasenia1.c_str());
 	fstream uR;
 	uR.open("Usuarios.dat", ios::binary | ios::app);
 	if(!uR) cout<< "Error al abrir el archivo" << endl;
@@ -250,6 +306,7 @@ void cargarRegistro(char nombre[], char contrasenia[], int & TL){
 		TL++;
 	}
 }
+	
 bool encontrarUyC(Usuarios usuario[], char nombre[], char contrasenia[], int & dia, int & mes, int & anio){
 	int i=0;
 	bool encontrado=false;
