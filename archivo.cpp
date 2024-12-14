@@ -9,33 +9,83 @@ using namespace std;
 struct Fecha{
 	int dia, mes, anio;
 };
-struct Usuarios{
+struct Usuario{
 	char nombre_usuario[11];
 	char clave[37];
 	Fecha ultimo_acceso;
-}usuario[100];
+};
 
-void menu();
-void registro(int &);
-bool iniciarSesion();
+void traerInformacion(Usuario [], int &, int);
+void actualizarRegistro(Usuario [], int &);
+void menu(Usuario [], int &);
+void registro(Usuario [], int &);
+bool iniciarSesion(Usuario [], int);
 //void algoritmosNumericos();
 //void juegoSMB();
-bool existenciaNombre(Usuarios [],string, int);
+bool existenciaNombre(Usuario [],string, int);
 bool validacionNombre(string);
 bool validacionContrasenia(string);
 void calculoFecha(int &, int &, int &);
-void cargarRegistro(string, string, int &);
-bool encontrarUyC(Usuarios usuario[], char nombre[], char contrasenia[], int & dia, int & mes, int & anio);
+void cargarRegistro(Usuario [], string, string, int &);
+bool encontrarUyC(Usuario [], string, string, int &, int &, int &, int);
 
 int main(){
+	Usuario usuarios[100];
+	int TL=0;
 	
-	menu();
+	traerInformacion(usuarios, TL, 100);
+	
+	menu(usuarios, TL);
 	
 	return 0;
 }
+
+void traerInformacion(Usuario usuarios[], int &TL, int capacidad) {
+	ifstream Entrada("Usuarios.dat", ios::binary);
 	
-void menu(){
-	int TL=0;
+	if (!Entrada) {
+		cerr << "Error al abrir el fichero" << endl;
+		return;
+	}
+	
+	TL = 0; // Reiniciar TL para evitar datos duplicados
+	
+	Usuario temp;
+	while (Entrada.read((char*)(&temp), sizeof(Usuario))) {
+		if (TL < capacidad) {
+			usuarios[TL++] = temp; // Solo agregamos si hay espacio en el arreglo
+			cout << temp.nombre_usuario << " " << temp.clave << " "
+				<< temp.ultimo_acceso.dia << "/" << temp.ultimo_acceso.mes << "/"
+				<< temp.ultimo_acceso.anio << endl;
+		} else {
+			cerr << "Capacidad máxima alcanzada, algunos usuarios no se cargaron." << endl;
+			break;
+		}
+	}
+	
+	Entrada.close();
+	cout << "Cantidad de usuarios cargados: " << TL << endl;
+}
+	
+void actualizarRegistro(Usuario usuarios[], int &TL) {
+	ofstream Archivo("Usuarios.dat", ios::binary | ios::trunc);
+	
+	if (!Archivo) {
+		cerr << "Error al abrir el fichero" << endl;
+		return;
+	}
+	
+	if (TL > 0) {
+		Archivo.write((char*)(usuarios), sizeof(Usuario) * TL);
+		if (!Archivo) {
+			cerr << "Error al escribir en el archivo." << endl;
+		}
+	}
+	
+	Archivo.close();
+}
+	
+void menu(Usuario usuarios[], int &TL){
 	int opcion;
 	bool sesion_iniciada=false;
 	
@@ -53,10 +103,10 @@ void menu(){
 		system("cls");
 		switch(opcion){
 		case 1: cout << "COMIENZA EL REGISTRO!" << endl << endl;
-				registro(TL);
+				registro(usuarios, TL);
 				break;
 		case 2: cout << "INICIO DE SESION!" << endl;
-				sesion_iniciada = iniciarSesion();
+				sesion_iniciada = iniciarSesion(usuarios, TL);
 				break;
 		case 3: if(sesion_iniciada)
 					cout << "ALGORITMOS NUMERICOS!" << endl;
@@ -117,7 +167,7 @@ string leerContrasenia() {
 }
 
 // Función para registrar un usuario
-void registro(int &TL) {
+void registro(Usuario usuarios[], int &TL) {
 	string nombre, contrasenia, contraseniaVerif;
 	int entrar;
 	
@@ -127,11 +177,11 @@ void registro(int &TL) {
 		cout << "Ingrese un usuario: ";
 		getline(cin, nombre);
 		
-		if (!validacionNombre(nombre) || existenciaNombre(usuario, nombre, TL)) {
-			cout << "ERROR: Usuario no válido o ya existe." << endl;
+		if (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL)) {
+			cout << "ERROR: Usuario no valido o ya existe." << endl;
 			system("cls");
 		}
-	} while (!validacionNombre(nombre) || existenciaNombre(usuario, nombre, TL));
+	} while (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL));
 	
 	// Leer y validar contraseña
 	do {
@@ -143,7 +193,7 @@ void registro(int &TL) {
 		cout << endl;
 		
 		if (!validacionContrasenia(contrasenia)) {
-			cout << "ERROR: Contraseña no válida." << endl;
+			cout << "ERROR: Contrasenia no valida." << endl;
 			system("cls");
 		}
 	} while (!validacionContrasenia(contrasenia));
@@ -155,12 +205,12 @@ void registro(int &TL) {
 		cout << endl;
 		
 		if (contrasenia != contraseniaVerif) {
-			cout << "ERROR: Las contraseñas no coinciden." << endl;
+			cout << "ERROR: Las contrasenias no coinciden." << endl;
 		}
 	} while (contrasenia != contraseniaVerif);
 	
 	// Registro exitoso
-	cargarRegistro(nombre, contrasenia, TL);
+	cargarRegistro(usuarios, nombre, contrasenia, TL);
 	cout << "Registro exitoso." << endl;
 	
 	// Opción de iniciar sesión
@@ -172,37 +222,33 @@ void registro(int &TL) {
 		
 		switch (entrar) {
 		case 1:
-			iniciarSesion();
+			iniciarSesion(usuarios, TL);
 			break;
 		case 2:
-			cout << "Volviendo al menú..." << endl;
+			cout << "Volviendo al menu..." << endl;
 			break;
 		default:
-			cout << "Opción inválida. Intente de nuevo." << endl;
+			cout << "Opcion invalida. Intente de nuevo." << endl;
 		}
 	} while (entrar != 1 && entrar != 2);
 	system("cls");
 }
 
-bool iniciarSesion(){
-	char nombre[11], contrasenia[37];
-	int i=0, dia, mes, anio;
-	bool encontrado=false;
+bool iniciarSesion(Usuario usuarios[], int TL){
+	string nombre, contrasenia;
+	int dia, mes, anio;
 	cin.ignore(1000, '\n');
 	cout << "Ingrese su usuario: ";
-	cin.getline(nombre, 11, '\n');
+	getline(cin, nombre);
 	cout << "Ingrese su contrasenia: ";
-	cin.getline(contrasenia, 37, '\n');
-	while(i<3 and !encontrado){
-		if(encontrarUyC(usuario, nombre, contrasenia, dia, mes, anio)){
-			encontrado=true;
-			Sleep(1500);
-			system("cls");
-			cout << "Bienvenida/o "<< nombre << endl;
-			cout << "========================" << endl;
-			cout << "Ultimo acceso a la aplicacion: "<<dia<<"/"<<mes<<"/"<<anio<<endl;
-			return true;
-		}
+	getline(cin, contrasenia);
+	if(encontrarUyC(usuarios, nombre, contrasenia, dia, mes, anio, TL)){
+		Sleep(1500);
+		system("cls");
+		cout << "Bienvenida/o "<< nombre << endl;
+		cout << "========================" << endl;
+		cout << "Ultimo acceso a la aplicacion: "<<dia<<"/"<<mes<<"/"<<anio<<endl;
+		return true;
 	}
 	return false;
 }
@@ -211,7 +257,7 @@ bool iniciarSesion(){
 	
 //void juegoSMB();
 	
-bool existenciaNombre(Usuarios usuario[], string nombre1, int TL){
+bool existenciaNombre(Usuario usuarios[], string nombre1, int TL){
 	int i=0;
 	char nombre[11];
 	strcpy(nombre, nombre1.c_str());
@@ -220,11 +266,11 @@ bool existenciaNombre(Usuarios usuario[], string nombre1, int TL){
 	uR.open("Usuarios.dat", ios::binary | ios::in);
 	if(!uR) cout<< "Error al abrir el archivo." << endl;
 	else{
-		uR.read((char*)(&usuario), sizeof(Usuarios)*100);
+		uR.read((char*)(&usuarios), sizeof(Usuario)*100);
 		while(i<TL and !encontrado){	
-			cout<<nombre<< " " << usuario[i].nombre_usuario << " " << encontrado<<endl;
+			cout<<nombre<< " " << usuarios[i].nombre_usuario << " " << encontrado<<endl;
 			i++;
-			if(strcmp(nombre, usuario[i].nombre_usuario)==0) encontrado=true;
+			if(strcmp(nombre, usuarios[i].nombre_usuario)==0) encontrado=true;
 			i++;
 		}
 		uR.close();
@@ -286,43 +332,46 @@ void calculoFecha(int & dia, int & mes, int & anio){
 	anio = 1900 + fechaLocal->tm_year;
 }
 	
-void cargarRegistro(string nombre1, string contrasenia1, int & TL){
+void cargarRegistro(Usuario usuarios[], string nombre1, string contrasenia1, int & TL){
 	int dia, mes, anio;
-	char nombre[11], contrasenia[37];
-	strcpy(nombre, nombre1.c_str());
-	strcpy(contrasenia, contrasenia1.c_str());
-	fstream uR;
-	uR.open("Usuarios.dat", ios::binary | ios::app);
-	if(!uR) cout<< "Error al abrir el archivo" << endl;
-	else{
-		calculoFecha(dia, mes, anio);
-		strcpy(usuario[TL].nombre_usuario, nombre);
-		strcpy(usuario[TL].clave, contrasenia);
-		usuario[TL].ultimo_acceso.dia = dia;
-		usuario[TL].ultimo_acceso.mes = mes;
-		usuario[TL].ultimo_acceso.anio = anio;
-		uR.write((char*)(&usuario), sizeof(Usuarios)*100);
-		uR.close();
-		TL++;
-	}
+	
+	strcpy(usuarios[TL].nombre_usuario, nombre1.c_str());
+	strcpy(usuarios[TL].clave, contrasenia1.c_str());
+	calculoFecha(dia, mes, anio);
+	usuarios[TL].ultimo_acceso.dia = dia;
+	usuarios[TL].ultimo_acceso.mes = mes;
+	usuarios[TL].ultimo_acceso.anio = anio;
+	TL++;
+	
+	actualizarRegistro(usuarios, TL);
 }
 	
-bool encontrarUyC(Usuarios usuario[], char nombre[], char contrasenia[], int & dia, int & mes, int & anio){
-	int i=0;
-	bool encontrado=false;
-	ifstream uR;
-	uR.open("Usuarios.dat");
-	if(!uR) cout<< "Error al abrir el archivo" << endl;
-	else{
-		while(!uR.eof() and !encontrado){	
-			uR.read((char*)(&usuario), sizeof(Usuarios)*100);
-			if(strcmp(nombre, usuario[i].nombre_usuario) and strcmp(contrasenia, usuario[i].clave)) encontrado=true;
-			dia=usuario[i].ultimo_acceso.dia;
-			mes=usuario[i].ultimo_acceso.mes;
-			anio=usuario[i].ultimo_acceso.anio;
-			i++;
+bool encontrarUyC(Usuario usuarios[], string nombre, string contrasenia, int & dia, int & mes, int & anio, int TL){
+	int i=0, pos;
+	bool Uencontrado=false, iniciar=false;
+	
+	for(int i=0; i<TL && !Uencontrado; i++){
+		bool band=true;
+		for(int j=0; j<nombre.length() && band; j++){
+			if(usuarios[i].nombre_usuario[j] != nombre[j]) band=false;
 		}
-		uR.close();
+		Uencontrado = band;
+		pos = i;
 	}
-	return encontrado;
+	
+	if(Uencontrado){
+		bool band=true;
+		for(int j=0; j<contrasenia.length() && band; j++){
+			if(usuarios[i].clave[j] != contrasenia[j]) band=false;
+		}
+		iniciar = band;
+	}
+	
+	if(iniciar){
+		dia = usuarios[pos].ultimo_acceso.dia;
+		mes = usuarios[pos].ultimo_acceso.mes;
+		anio = usuarios[pos].ultimo_acceso.anio;
+	}
+	
+	return iniciar;
 }
