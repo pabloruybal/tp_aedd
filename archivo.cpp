@@ -20,6 +20,10 @@ void traerInformacion(Usuario [], int &);
 void actualizarRegistro(Usuario [], int &);
 void menu(Usuario [], int &);
 void registro(Usuario [], int &);
+void encriptar(string &);
+void sumarAlpha(string &, int);
+void invertir(string &, int);
+void restarMitad(string &, int);
 bool iniciarSesion(Usuario [], int);
 //void algoritmosNumericos();
 //void juegoSMB();
@@ -27,7 +31,7 @@ bool existenciaNombre(Usuario [],string, int);
 bool validacionNombre(string);
 bool validacionContrasenia(string);
 void calculoFecha(int &, int &, int &);
-void cargarRegistro(Usuario [], string, string, int &);
+void crearUsuario(Usuario [], string, string, int &);
 bool encontrarUyC(Usuario [], string, string, int &, int &, int &, int);
 
 int main(){
@@ -49,15 +53,15 @@ void traerInformacion(Usuario usuarios[], int &TL) {
 		return;
 	}
 	
-	TL = 0; // Reiniciar TL para evitar datos duplicados
+	TL = 0;
 	
 	Usuario temp;
 	while (Entrada.read((char*)(&temp), sizeof(Usuario))) {
 		if (TL < 100) {
 			usuarios[TL++] = temp;
-			cout << temp.nombre_usuario << " " << temp.clave << " "
+			/*cout << temp.nombre_usuario << " " << temp.clave << " "
 				<< temp.ultimo_acceso.dia << "/" << temp.ultimo_acceso.mes << "/"
-				<< temp.ultimo_acceso.anio << endl;
+				<< temp.ultimo_acceso.anio << endl;*/
 		} else {
 			cerr << "Capacidad máxima alcanzada, algunos usuarios no se cargaron." << endl;
 			break;
@@ -65,7 +69,7 @@ void traerInformacion(Usuario usuarios[], int &TL) {
 	}
 	
 	Entrada.close();
-	cout << "Cantidad de usuarios cargados: " << TL << endl;
+	//cout << "Cantidad de usuarios cargados: " << TL << endl;
 }
 	
 void actualizarRegistro(Usuario usuarios[], int &TL) {
@@ -125,7 +129,7 @@ void menu(Usuario usuarios[], int &TL){
 					cout << "Inicie sesion por favor" << endl;
 				//juegoSMB();
 				break;
-		case 9: 
+		case 9: actualizarRegistro(usuarios, TL);
 				break;
 		default: cout << "\nOpcion invalida. Vuelva a intentarlo." << endl << endl;
 				Sleep(1500);
@@ -152,15 +156,14 @@ void mostrarRequisitos() {
 	cout << " --------------------" << endl << endl;
 }
 
-// Función para leer contraseñas con asteriscos
 string leerContrasenia() {
 	string contrasenia;
 	char ch;
 	
-	while ((ch = _getch()) != '\r') { // '\r' es Enter
-		if (ch == '\b') { // Retroceso
+	while ((ch = _getch()) != '\r') {
+		if (ch == '\b') {
 			if (!contrasenia.empty()) {
-				cout << "\b \b"; // Borra asterisco
+				cout << "\b \b";
 				contrasenia.pop_back();
 			}
 		} else {
@@ -168,10 +171,12 @@ string leerContrasenia() {
 			cout << '*';
 		}
 	}
+	
+	encriptar(contrasenia);
+	
 	return contrasenia;
 }
 
-// Función para registrar un usuario
 void registro(Usuario usuarios[], int &TL) {
 	string nombre, contrasenia, contraseniaVerif;
 	int entrar;
@@ -202,7 +207,6 @@ void registro(Usuario usuarios[], int &TL) {
 		}
 	} while (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL));
 	
-	// Leer y validar contraseña
 	do {
 		system("cls");
 		mostrarRequisitos();
@@ -217,58 +221,97 @@ void registro(Usuario usuarios[], int &TL) {
 		}
 	} while (!validacionContrasenia(contrasenia));
 	
-	// Confirmar contraseña
-	do {
-		cout << "Repita la contrasenia: ";
-		contraseniaVerif = leerContrasenia();
-		cout << endl;
-		
-		if (contrasenia != contraseniaVerif) {
-			cout << "ERROR: Las contrasenias no coinciden." << endl;
-		}
-	} while (contrasenia != contraseniaVerif);
 	
-	// Registro exitoso
-	cargarRegistro(usuarios, nombre, contrasenia, TL);
-	cout << "Registro exitoso." << endl;
+	cout << "Repita la contrasenia: ";
+	contraseniaVerif = leerContrasenia();
+	cout << endl;
 	
-	// Opción de iniciar sesión
-	do {
-		cout << "Quieres iniciar sesion?" << endl;
-		cout << "1.- Si" << endl;
-		cout << "2.- No" << endl;
-		cin >> entrar;
+	if (contrasenia != contraseniaVerif) {
+		cout << "ERROR: Las contrasenias no coinciden." << endl;
+		Sleep(500);
+		cout << "Volviendo al menu..." << endl;
+		Sleep(1500);
+	} else{
+		crearUsuario(usuarios, nombre, contrasenia, TL);
+		cout << "Registro exitoso." << endl;
 		
-		switch (entrar) {
-		case 1:
-			iniciarSesion(usuarios, TL);
-			break;
-		case 2:
-			cout << "Volviendo al menu..." << endl;
-			Sleep(500);
-			break;
-		default:
-			cout << "Opcion invalida. Intente de nuevo." << endl;
-		}
-	} while (entrar != 1 && entrar != 2);
+		do {
+			cout << "Quieres iniciar sesion?" << endl;
+			cout << "1.- Si" << endl;
+			cout << "2.- No" << endl;
+			cin >> entrar;
+			
+			switch (entrar) {
+			case 1:
+				iniciarSesion(usuarios, TL);
+				break;
+			case 2:
+				cout << "Volviendo al menu..." << endl;
+				Sleep(1500);
+				break;
+			default:
+				cout << "Opcion invalida. Intente de nuevo." << endl;
+			}
+		} while (entrar != 1 && entrar != 2);
+	}
 	system("cls");
 }
 
-bool iniciarSesion(Usuario usuarios[], int TL){
-	string nombre, contrasenia;
-	int dia, mes, anio;
-	cin.ignore(1000, '\n');
-	cout << "Ingrese su usuario: ";
-	getline(cin, nombre);
-	cout << "Ingrese su contrasenia: ";
-	contrasenia = leerContrasenia();
-	if(encontrarUyC(usuarios, nombre, contrasenia, dia, mes, anio, TL)){
-		system("cls");
-		cout << "Bienvenida/o "<< nombre << endl;
-		cout << "========================" << endl;
-		cout << "Ultimo acceso a la aplicacion: "<<dia<<"/"<<mes<<"/"<<anio<<endl;
-		return true;
+void encriptar(string &contrasenia){
+	int largo=contrasenia.length();
+	
+	sumarAlpha(contrasenia, largo);
+	invertir(contrasenia, largo);
+	restarMitad(contrasenia, largo);
+}
+
+void sumarAlpha(string & texto, int largo){
+	for(int c=0; c<largo; c++){
+		if(isalpha(texto.at(c)))
+			texto[c]+=3;
 	}
+}
+
+void invertir(string & texto, int largo){
+	string inversa;
+	for(int j=0; j<largo; j++)
+		inversa +=texto.at(largo-1-j);
+	for(int k=0; k<largo; k++)
+		texto.at(k)=inversa.at(k);
+}
+
+void restarMitad(string & texto, int largo){
+	for(int c=largo/2; c<largo; c++)
+		texto.at(c)-=1;
+}
+
+bool iniciarSesion(Usuario usuarios[], int TL) {
+	string nombre, contrasenia;
+	int dia, mes, anio, intentos = 3;
+	
+	while (intentos > 0) {
+		if(intentos == 3) cin.ignore(1000, '\n');
+		cout << "Ingrese su usuario: ";
+		getline(cin, nombre);
+		cout << "Ingrese su contrasenia: ";
+		contrasenia = leerContrasenia();
+		
+		if (encontrarUyC(usuarios, nombre, contrasenia, dia, mes, anio, TL)) {
+			cout << "\nBienvenida/o " << nombre << endl;
+			cout << "========================" << endl;
+			cout << "Ultimo acceso a la aplicacion: " << dia << "/" << mes << "/" << anio << endl;
+			Sleep(1500);
+			return true;
+		} else {
+			intentos--;
+			cout << "\nERROR - Verifique los datos ingresados. Le quedan " << intentos << " intentos." << endl;
+		}
+	}
+	
+	cout << "Ha excedido el numero máximo de intentos, se te redirigira al menu." << endl;
+	Sleep(1500);
+	system("cls");
+	
 	return false;
 }
 	
@@ -340,7 +383,7 @@ void calculoFecha(int & dia, int & mes, int & anio){
 	anio = 1900 + fechaLocal->tm_year;
 }
 	
-void cargarRegistro(Usuario usuarios[], string nombre1, string contrasenia1, int & TL){
+void crearUsuario(Usuario usuarios[], string nombre1, string contrasenia1, int & TL){
 	int dia, mes, anio;
 	
 	strcpy(usuarios[TL].nombre_usuario, nombre1.c_str());
@@ -357,6 +400,8 @@ void cargarRegistro(Usuario usuarios[], string nombre1, string contrasenia1, int
 bool encontrarUyC(Usuario usuarios[], string nombre, string contrasenia, int & dia, int & mes, int & anio, int TL){
 	int i=0, pos;
 	bool Uencontrado=false, iniciar=false;
+	
+	if(nombre.empty() || contrasenia.empty()) return false;
 	
 	for(int i=0; i<TL && !Uencontrado; i++){
 		if(strncmp(usuarios[i].nombre_usuario, nombre.c_str(), nombre.length()) == 0) Uencontrado=true;
