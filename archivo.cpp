@@ -245,7 +245,7 @@ void registro(Usuario usuarios[], int &TL) {
 			break;
 		case 2:
 			cout << "Volviendo al menu..." << endl;
-			Sleep(200);
+			Sleep(500);
 			break;
 		default:
 			cout << "Opcion invalida. Intente de nuevo." << endl;
