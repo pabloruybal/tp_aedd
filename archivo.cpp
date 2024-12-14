@@ -4,6 +4,7 @@
 #include <fstream> 
 #include <ctime>
 #include <conio.h>
+#include <cstring>
 using namespace std;
 
 struct Fecha{
@@ -15,7 +16,7 @@ struct Usuario{
 	Fecha ultimo_acceso;
 };
 
-void traerInformacion(Usuario [], int &, int);
+void traerInformacion(Usuario [], int &);
 void actualizarRegistro(Usuario [], int &);
 void menu(Usuario [], int &);
 void registro(Usuario [], int &);
@@ -33,14 +34,14 @@ int main(){
 	Usuario usuarios[100];
 	int TL=0;
 	
-	traerInformacion(usuarios, TL, 100);
+	traerInformacion(usuarios, TL);
 	
 	menu(usuarios, TL);
 	
 	return 0;
 }
 
-void traerInformacion(Usuario usuarios[], int &TL, int capacidad) {
+void traerInformacion(Usuario usuarios[], int &TL) {
 	ifstream Entrada("Usuarios.dat", ios::binary);
 	
 	if (!Entrada) {
@@ -52,8 +53,8 @@ void traerInformacion(Usuario usuarios[], int &TL, int capacidad) {
 	
 	Usuario temp;
 	while (Entrada.read((char*)(&temp), sizeof(Usuario))) {
-		if (TL < capacidad) {
-			usuarios[TL++] = temp; // Solo agregamos si hay espacio en el arreglo
+		if (TL < 100) {
+			usuarios[TL++] = temp;
 			cout << temp.nombre_usuario << " " << temp.clave << " "
 				<< temp.ultimo_acceso.dia << "/" << temp.ultimo_acceso.mes << "/"
 				<< temp.ultimo_acceso.anio << endl;
@@ -94,8 +95,12 @@ void menu(Usuario usuarios[], int &TL){
 		cout << "==========================" << endl << endl;
 		cout << "1.- Registro" << endl;
 		cout << "2.- Iniciar sesion" << endl;
-		cout << "3.- Algoritmos Numericos" << endl;
-		cout << "4.- Juego Super Mario Bros" << endl;
+		cout << "3.- Algoritmos Numericos";
+		if(!sesion_iniciada) cout<<" (primero debe iniciar sesion)";
+		cout << endl;
+		cout << "4.- Juego Super Mario Bros";
+		if(!sesion_iniciada) cout<<" (primero debe iniciar sesion)";
+		cout << endl;
 		cout << "9.- Salir de la aplicacion" << endl << endl;
 		cout << "Ingrese una opcion: ";
 		
@@ -111,13 +116,13 @@ void menu(Usuario usuarios[], int &TL){
 		case 3: if(sesion_iniciada)
 					cout << "ALGORITMOS NUMERICOS!" << endl;
 				else
-					cout << "Primero inicie sesion" << endl;
+					cout << "Inicie sesion por favor" << endl;
 				//algoritmosNumericos();
 				break;
 		case 4: if(sesion_iniciada)
 					cout << "JUEGO SUPER MARIO BROS!" << endl;
 				else
-					cout << "Primero inicie sesion" << endl;
+					cout << "Inicie sesion por favor" << endl;
 				//juegoSMB();
 				break;
 		case 9: 
@@ -175,11 +180,25 @@ void registro(Usuario usuarios[], int &TL) {
 		system("cls");
 		mostrarRequisitos();
 		cout << "Ingrese un usuario: ";
+		cin.ignore(1000, '\n');
 		getline(cin, nombre);
 		
-		if (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL)) {
-			cout << "ERROR: Usuario no valido o ya existe." << endl;
+		while(existenciaNombre(usuarios, nombre, TL)) {
 			system("cls");
+			mostrarRequisitos();
+			cout << "ERROR: Este nombre de usuario ya existe." << endl;
+			cout << "Ingrese un usuario: ";
+			cin.ignore(1000, '\n');
+			getline(cin, nombre);
+		}
+		
+		while(!validacionNombre(nombre)){
+			system("cls");
+			mostrarRequisitos();
+			cout << "ERROR: Nombre de usuario no valido." << endl;
+			cout << "Ingrese un usuario: ";
+			cin.ignore(1000, '\n');
+			getline(cin, nombre);
 		}
 	} while (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL));
 	
@@ -226,6 +245,7 @@ void registro(Usuario usuarios[], int &TL) {
 			break;
 		case 2:
 			cout << "Volviendo al menu..." << endl;
+			Sleep(200);
 			break;
 		default:
 			cout << "Opcion invalida. Intente de nuevo." << endl;
@@ -241,9 +261,8 @@ bool iniciarSesion(Usuario usuarios[], int TL){
 	cout << "Ingrese su usuario: ";
 	getline(cin, nombre);
 	cout << "Ingrese su contrasenia: ";
-	getline(cin, contrasenia);
+	contrasenia = leerContrasenia();
 	if(encontrarUyC(usuarios, nombre, contrasenia, dia, mes, anio, TL)){
-		Sleep(1500);
 		system("cls");
 		cout << "Bienvenida/o "<< nombre << endl;
 		cout << "========================" << endl;
@@ -257,25 +276,14 @@ bool iniciarSesion(Usuario usuarios[], int TL){
 	
 //void juegoSMB();
 	
-bool existenciaNombre(Usuario usuarios[], string nombre1, int TL){
-	int i=0;
-	char nombre[11];
-	strcpy(nombre, nombre1.c_str());
-	bool encontrado=false;
-	fstream uR;
-	uR.open("Usuarios.dat", ios::binary | ios::in);
-	if(!uR) cout<< "Error al abrir el archivo." << endl;
-	else{
-		uR.read((char*)(&usuarios), sizeof(Usuario)*100);
-		while(i<TL and !encontrado){	
-			cout<<nombre<< " " << usuarios[i].nombre_usuario << " " << encontrado<<endl;
-			i++;
-			if(strcmp(nombre, usuarios[i].nombre_usuario)==0) encontrado=true;
-			i++;
-		}
-		uR.close();
+bool existenciaNombre(Usuario usuarios[], string nombre, int TL){
+	bool band=false;
+	
+	for(int i=0; i<TL && !band; i++){
+		if(strncmp(usuarios[i].nombre_usuario, nombre.c_str(), nombre.length()) == 0) band=true;
 	}
-	return encontrado;
+	
+	return band;
 }
 	
 bool validacionNombre(string usuario){
@@ -351,20 +359,12 @@ bool encontrarUyC(Usuario usuarios[], string nombre, string contrasenia, int & d
 	bool Uencontrado=false, iniciar=false;
 	
 	for(int i=0; i<TL && !Uencontrado; i++){
-		bool band=true;
-		for(int j=0; j<nombre.length() && band; j++){
-			if(usuarios[i].nombre_usuario[j] != nombre[j]) band=false;
-		}
-		Uencontrado = band;
+		if(strncmp(usuarios[i].nombre_usuario, nombre.c_str(), nombre.length()) == 0) Uencontrado=true;
 		pos = i;
 	}
 	
 	if(Uencontrado){
-		bool band=true;
-		for(int j=0; j<contrasenia.length() && band; j++){
-			if(usuarios[i].clave[j] != contrasenia[j]) band=false;
-		}
-		iniciar = band;
+		if(strncmp(usuarios[i].clave, contrasenia.c_str(), contrasenia.length()) == 0) iniciar=true;
 	}
 	
 	if(iniciar){
