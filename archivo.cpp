@@ -5,6 +5,9 @@
 #include <ctime>
 #include <conio.h>
 #include <cstring>
+#include "algoritmos_numericos.h"
+#include "stdpanel.h"
+#include "juego.h"
 using namespace std;
 
 struct Fecha{
@@ -19,7 +22,7 @@ struct Usuario{
 void traerInformacion(Usuario [], int &);
 void actualizarRegistro(Usuario [], int &);
 void menu(Usuario [], int &);
-void registro(Usuario [], int &);
+bool registro(Usuario [], int &);
 void encriptar(string &);
 void sumarAlpha(string &, int);
 void invertir(string &, int);
@@ -35,6 +38,8 @@ void crearUsuario(Usuario [], string, string, int &);
 bool encontrarUyC(Usuario [], string, string, int &, int &, int &, int);
 
 int main(){
+	system("mode con: cols=120 lines=30");
+	system("Title 1 - Barrios, Boschi y Ruybal");
 	Usuario usuarios[100];
 	int TL=0;
 	
@@ -112,22 +117,25 @@ void menu(Usuario usuarios[], int &TL){
 		system("cls");
 		switch(opcion){
 		case 1: cout << "COMIENZA EL REGISTRO!" << endl << endl;
-				registro(usuarios, TL);
+				if(registro(usuarios, TL)){
+					cout << "INICIO DE SESION!" << endl;
+					sesion_iniciada = iniciarSesion(usuarios, TL);
+				}
 				break;
 		case 2: cout << "INICIO DE SESION!" << endl;
 				sesion_iniciada = iniciarSesion(usuarios, TL);
 				break;
-		case 3: if(sesion_iniciada)
+		case 3: if(sesion_iniciada){
 					cout << "ALGORITMOS NUMERICOS!" << endl;
-				else
+					menuAlgoritmosNumericos();
+				} else
 					cout << "Inicie sesion por favor" << endl;
-				//algoritmosNumericos();
 				break;
-		case 4: if(sesion_iniciada)
+		case 4: if(sesion_iniciada){
 					cout << "JUEGO SUPER MARIO BROS!" << endl;
-				else
+					menuJuego();
+				} else
 					cout << "Inicie sesion por favor" << endl;
-				//juegoSMB();
 				break;
 		case 9: actualizarRegistro(usuarios, TL);
 				break;
@@ -177,7 +185,7 @@ string leerContrasenia() {
 	return contrasenia;
 }
 
-void registro(Usuario usuarios[], int &TL) {
+bool registro(Usuario usuarios[], int &TL) {
 	string nombre, contrasenia, contraseniaVerif;
 	int entrar;
 	
@@ -226,6 +234,8 @@ void registro(Usuario usuarios[], int &TL) {
 	contraseniaVerif = leerContrasenia();
 	cout << endl;
 	
+	bool iniciar;
+	
 	if (contrasenia != contraseniaVerif) {
 		cout << "ERROR: Las contrasenias no coinciden." << endl;
 		Sleep(500);
@@ -243,11 +253,12 @@ void registro(Usuario usuarios[], int &TL) {
 			
 			switch (entrar) {
 			case 1:
-				iniciarSesion(usuarios, TL);
+				iniciar = true;
 				break;
 			case 2:
 				cout << "Volviendo al menu..." << endl;
 				Sleep(1500);
+				iniciar = false;
 				break;
 			default:
 				cout << "Opcion invalida. Intente de nuevo." << endl;
@@ -255,6 +266,8 @@ void registro(Usuario usuarios[], int &TL) {
 		} while (entrar != 1 && entrar != 2);
 	}
 	system("cls");
+	
+	return iniciar;
 }
 
 void encriptar(string &contrasenia){
