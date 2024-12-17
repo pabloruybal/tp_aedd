@@ -91,9 +91,9 @@ void traerInformacion(Usuario usuarios[], int &TL) {
 	while (Entrada.read((char*)(&temp), sizeof(Usuario))) {
 		if (TL < 100) {
 			usuarios[TL++] = temp;
-			/*cout << temp.nombre_usuario << " " << temp.clave << " "
+			cout << temp.nombre_usuario << " " << temp.clave << " "
 				<< temp.ultimo_acceso.dia << "/" << temp.ultimo_acceso.mes << "/"
-				<< temp.ultimo_acceso.anio << endl;*/
+				<< temp.ultimo_acceso.anio << endl;
 		} else {
 			cerr << "Capacidad máxima alcanzada, algunos usuarios no se cargaron." << endl;
 			break;
@@ -101,7 +101,7 @@ void traerInformacion(Usuario usuarios[], int &TL) {
 	}
 	
 	Entrada.close();
-	//cout << "Cantidad de usuarios cargados: " << TL << endl;
+	cout << "Cantidad de usuarios cargados: " << TL << endl;
 }
 	
 void actualizarRegistro(Usuario usuarios[], int &TL) {
@@ -438,25 +438,26 @@ void crearUsuario(Usuario usuarios[], string nombre1, string contrasenia1, int &
 }
 	
 bool encontrarUyC(Usuario usuarios[], string nombre, string contrasenia, int & dia, int & mes, int & anio, int TL){
-	int i=0, pos;
-	bool Uencontrado=false, iniciar=false;
+	if (nombre.empty() || contrasenia.empty()) {
+		return false;
+	}
 	
-	if(nombre.empty() || contrasenia.empty()) return false;
+	int pos=-1;
+	bool Uencontrado=false;
 	
 	for(int i=0; i<TL && !Uencontrado; i++){
-		if(strncmp(usuarios[i].nombre_usuario, nombre.c_str(), nombre.length()) == 0) Uencontrado=true;
+		if (strncmp(usuarios[i].nombre_usuario, nombre.c_str(), sizeof(usuarios[i].nombre_usuario)) == 0) {
+			Uencontrado=true;
 		pos = i;
+		}
 	}
 	
-	if(Uencontrado){
-		if(strncmp(usuarios[i].clave, contrasenia.c_str(), contrasenia.length()) == 0) iniciar=true;
-	}
-	
-	if(iniciar){
+	if (Uencontrado && strncmp(usuarios[pos].clave, contrasenia.c_str(), sizeof(usuarios[pos].clave)) == 0) {
 		dia = usuarios[pos].ultimo_acceso.dia;
 		mes = usuarios[pos].ultimo_acceso.mes;
 		anio = usuarios[pos].ultimo_acceso.anio;
+		return true;
 	}
 	
-	return iniciar;
+	return false;
 }
