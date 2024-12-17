@@ -5,6 +5,7 @@
 #include <ctime>
 #include <conio.h>
 #include <cstring>
+
 #include "algoritmos_numericos.h"
 #include "stdpanel.h"
 #include "juego.h"
@@ -37,9 +38,35 @@ void calculoFecha(int &, int &, int &);
 void crearUsuario(Usuario [], string, string, int &);
 bool encontrarUyC(Usuario [], string, string, int &, int &, int &, int);
 
+void inicio(){
+	cout << endl;
+	cout<<"          ----------------------------------------------------------------------------------          "<<endl<<endl<<endl;
+	cout<<"             ooo     ooo      ooo    oooooooooooo    ooo             oooooooooooo     ooo             "<<endl;
+	cout<<"             ooo     ooo      ooo    oooooooooooo    ooo             oooooooooooo     ooo             "<<endl;
+	cout<<"                     ooo      ooo    ooo      ooo    ooo             ooo      ooo     ooo             "<<endl;
+	cout<<"             ooo     ooo      ooo    ooo      ooo    ooo             ooo      ooo     ooo             "<<endl;
+	cout<<"             ooo     oooooooooooo    ooo      ooo    ooo             ooo      ooo     ooo             "<<endl;
+	cout<<"             ooo     oooooooooooo    ooo      ooo    ooo             oooooooooooo     ooo   	         "<<endl;
+	cout<<"             ooo     ooo      ooo    ooo      ooo    ooo             oooooooooooo     ooo             "<<endl;
+	cout<<"             ooo     ooo      ooo    ooo      ooo    ooo             ooo      ooo                     "<<endl;
+	cout<<"             ooo     ooo      ooo    oooooooooooo    oooooooooooo    ooo      ooo     ooo             "<<endl;
+	cout<<"             ooo     ooo      ooo    oooooooooooo    oooooooooooo    ooo      ooo     ooo             "<<endl<<endl<<endl;
+	cout<<"          ----------------------------------------------------------------------------------          "<<endl<<endl;
+	cout<<"                                    -- Bienvenido/a al programa --                                    "<<endl<<endl;
+	cout<<"          ----------------------------------------------------------------------------------          "<<endl<<endl;
+	cout<<"                                 -- Barrios  -  Boschi  -  Ruybal --                                  "<<endl<<endl;
+	cout<<"                                                -2024-                                                "<<endl<<endl;
+	cout<<"          ----------------------------------------------------------------------------------          "<<endl<<endl;
+	
+	Sleep(4000);
+	system("cls");
+}
+
+
 int main(){
 	system("mode con: cols=120 lines=30");
 	system("Title 1 - Barrios, Boschi y Ruybal");
+	inicio();
 	Usuario usuarios[100];
 	int TL=0;
 	
