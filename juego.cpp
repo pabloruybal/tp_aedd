@@ -43,7 +43,7 @@ bool pedirCoord(int & coord1, int & coord2){
 	cout<<"Ingresa el valor de la coordenada i (o 99 para terminar el juego): ";
 	cin>>coord1;
 	if(coord1 == 99) return true;
-	while(coord1 > 19 || coord1 < 0){
+	while(coord1 > 9 || coord1 < 0){
 		cout << "Reingresa el valor de la coordenada i correctamente: ";
 		cin>>coord1;
 	}
@@ -51,7 +51,7 @@ bool pedirCoord(int & coord1, int & coord2){
 	cout<<"Ingresa el valor de la coordenada j: ";
 	cin>>coord2;
 	
-	while(coord2 > 9 || coord2 < 0){
+	while(coord2 > 19 || coord2 < 0){
 		cout << "Reingresa el valor de la coordenada j correctamente: ";
 		cin>>coord2;
 	}

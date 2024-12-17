@@ -91,9 +91,9 @@ void traerInformacion(Usuario usuarios[], int &TL) {
 	while (Entrada.read((char*)(&temp), sizeof(Usuario))) {
 		if (TL < 100) {
 			usuarios[TL++] = temp;
-			cout << temp.nombre_usuario << " " << temp.clave << " "
+			/*cout << temp.nombre_usuario << " " << temp.clave << " "
 				<< temp.ultimo_acceso.dia << "/" << temp.ultimo_acceso.mes << "/"
-				<< temp.ultimo_acceso.anio << endl;
+				<< temp.ultimo_acceso.anio << endl;*/
 		} else {
 			cerr << "Capacidad máxima alcanzada, algunos usuarios no se cargaron." << endl;
 			break;
@@ -101,7 +101,7 @@ void traerInformacion(Usuario usuarios[], int &TL) {
 	}
 	
 	Entrada.close();
-	cout << "Cantidad de usuarios cargados: " << TL << endl;
+//	cout << "Cantidad de usuarios cargados: " << TL << endl;
 }
 	
 void actualizarRegistro(Usuario usuarios[], int &TL) {
@@ -207,7 +207,7 @@ string leerContrasenia() {
 		}
 	}
 	
-	encriptar(contrasenia);
+//	encriptar(contrasenia);
 	
 	return contrasenia;
 }
@@ -216,31 +216,24 @@ bool registro(Usuario usuarios[], int &TL) {
 	string nombre, contrasenia, contraseniaVerif;
 	int entrar;
 	
-	do {
+	system("cls");
+	mostrarRequisitos();
+	cout << "Ingrese un usuario: ";
+	cin.ignore(1000, '\n');
+	getline(cin, nombre);
+	
+	while (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL)){
 		system("cls");
 		mostrarRequisitos();
-		cout << "Ingrese un usuario: ";
-		cin.ignore(1000, '\n');
-		getline(cin, nombre);
-		
-		while(existenciaNombre(usuarios, nombre, TL)) {
-			system("cls");
-			mostrarRequisitos();
+		if(existenciaNombre(usuarios, nombre, TL))
 			cout << "ERROR: Este nombre de usuario ya existe." << endl;
-			cout << "Ingrese un usuario: ";
-			cin.ignore(1000, '\n');
-			getline(cin, nombre);
-		}
-		
-		while(!validacionNombre(nombre)){
-			system("cls");
-			mostrarRequisitos();
+		else
 			cout << "ERROR: Nombre de usuario no valido." << endl;
-			cout << "Ingrese un usuario: ";
-			cin.ignore(1000, '\n');
-			getline(cin, nombre);
-		}
-	} while (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL));
+		
+		cin.clear();
+		cout << "Ingrese un usuario: ";
+		getline(cin, nombre);
+	}
 	
 	do {
 		system("cls");
@@ -252,13 +245,17 @@ bool registro(Usuario usuarios[], int &TL) {
 		
 		if (!validacionContrasenia(contrasenia)) {
 			cout << "ERROR: Contrasenia no valida." << endl;
+			Sleep(1500);
 			system("cls");
 		}
 	} while (!validacionContrasenia(contrasenia));
 	
+	encriptar(contrasenia);
+	
 	
 	cout << "Repita la contrasenia: ";
 	contraseniaVerif = leerContrasenia();
+	encriptar(contraseniaVerif);
 	cout << endl;
 	
 	bool iniciar;
@@ -335,8 +332,10 @@ bool iniciarSesion(Usuario usuarios[], int TL) {
 		getline(cin, nombre);
 		cout << "Ingrese su contrasenia: ";
 		contrasenia = leerContrasenia();
+		encriptar(contrasenia);
 		
 		if (encontrarUyC(usuarios, nombre, contrasenia, dia, mes, anio, TL)) {
+			system("cls");
 			cout << "\nBienvenida/o " << nombre << endl;
 			cout << "========================" << endl;
 			cout << "Ultimo acceso a la aplicacion: " << dia << "/" << mes << "/" << anio << endl;
@@ -355,9 +354,7 @@ bool iniciarSesion(Usuario usuarios[], int TL) {
 	return false;
 }
 	
-//void algoritmosNumericos();
-	
-//void juegoSMB();
+
 	
 bool existenciaNombre(Usuario usuarios[], string nombre, int TL){
 	bool band=false;
