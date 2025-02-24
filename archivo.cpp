@@ -213,7 +213,7 @@ string leerContrasenia() {
 }
 
 bool registro(Usuario usuarios[], int &TL) {
-	string nombre, contrasenia, contraseniaVerif;
+	string nombre, contrasenia, contraseniaVerif, nombreAux;
 	int entrar;
 	
 	system("cls");
@@ -221,6 +221,8 @@ bool registro(Usuario usuarios[], int &TL) {
 	cout << "Ingrese un usuario: ";
 	cin.ignore(1000, '\n');
 	getline(cin, nombre);
+	nombreAux = nombre;
+	encriptar(nombre);
 	
 	while (!validacionNombre(nombre) || existenciaNombre(usuarios, nombre, TL)){
 		system("cls");
@@ -233,12 +235,14 @@ bool registro(Usuario usuarios[], int &TL) {
 		cin.clear();
 		cout << "Ingrese un usuario: ";
 		getline(cin, nombre);
+		nombreAux = nombre;
+		encriptar(nombre);
 	}
 	
 	do {
 		system("cls");
 		mostrarRequisitos();
-		cout << "Ingrese un usuario: " << nombre << endl;
+		cout << "Ingrese un usuario: " << nombreAux << endl;
 		cout << "Ingrese una contrasenia: ";
 		contrasenia = leerContrasenia();
 		cout << endl;
@@ -322,6 +326,26 @@ void restarMitad(string & texto, int largo){
 		texto.at(c)-=1;
 }
 
+void sumarMitad(string & texto, int largo){
+	for(int c=largo/2; c<largo; c++)
+		texto.at(c)+=1;
+}
+
+void restarAlpha(string &texto, int largo){
+	for(int c = 0; c < largo; c++){
+		if(isalpha(texto.at(c)))
+			texto[c] -= 3;
+	}
+}
+
+void desencriptar(string &nombre){
+	int largo=nombre.length();
+	
+	sumarMitad(nombre, largo);
+	invertir(nombre, largo);
+	restarAlpha(nombre, largo);
+}
+
 bool iniciarSesion(Usuario usuarios[], int TL) {
 	string nombre, contrasenia;
 	int dia, mes, anio, intentos = 3;
@@ -330,12 +354,14 @@ bool iniciarSesion(Usuario usuarios[], int TL) {
 		if(intentos == 3) cin.ignore(1000, '\n');
 		cout << "Ingrese su usuario: ";
 		getline(cin, nombre);
+		encriptar(nombre);
 		cout << "Ingrese su contrasenia: ";
 		contrasenia = leerContrasenia();
 		encriptar(contrasenia);
 		
 		if (encontrarUyC(usuarios, nombre, contrasenia, dia, mes, anio, TL)) {
 			system("cls");
+			desencriptar(nombre);
 			cout << "\nBienvenida/o " << nombre << endl;
 			cout << "========================" << endl;
 			cout << "Ultimo acceso a la aplicacion: " << dia << "/" << mes << "/" << anio << endl;
@@ -367,6 +393,7 @@ bool existenciaNombre(Usuario usuarios[], string nombre, int TL){
 }
 	
 bool validacionNombre(string usuario){
+	desencriptar(usuario);
 	int largo=0, i=0, contMayus=0, contDig=0; 
 	largo = usuario.length();
 	bool dimension=false, inicial=false, cumple=true, esValido=false;
