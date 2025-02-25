@@ -33,7 +33,7 @@ void mostrarTablero(char tablerovacio[][20]){
 			else if( tablerovacio[i][j] != 'X' and tablerovacio[i][j] != '_' and tablerovacio[i][j] != '.' and tablerovacio[i][j] != '^' and j>=10 ) 
 				cout<< tablerovacio[i][j]<<"    ";
 				
-				if (i==9 and j==19)cout<<"  j";
+			if (i==9 and j==19)cout<<"  j";
 		}
 		cout<<endl;
 	}
@@ -436,6 +436,50 @@ void MyL(char tablero[10][20]){
 	SimularEncuentro(tablero);
 	
 }
+	
+void explicarJuego(){
+	system("cls");
+	cout << "hola" <<endl;
+	system("pause");
+}
+
+void opcionesMyL(){
+	cout << "Super Mario Bros: Juegos y Simulaciones" << endl << endl;
+	cout << "============================================================" << endl << endl;
+	cout << "1.- Ver definicion." << endl;
+	cout << "2.- Ejecutar." << endl << endl;
+	cout << "9.- Volver al menu anterior." << endl << endl;
+}
+
+void menuMyL(char tablero[][MAXIMO]){
+	system("cls");
+	int opcion=-1;
+	
+	while(opcion != 9){
+		opcionesMyL();
+		
+		cout << "Digite su eleccion: ";
+		cin >> opcion;
+		
+		switch(opcion){
+		case 1: 
+			explicarJuego();
+			break;
+		case 2:
+			cargarTablero(tablero, 10, 20);
+			MyL(tablero);
+			break;
+		case 9:
+			cout << "Volviendo..." << endl;
+			break;
+		default:
+			cout << "ERROR - Revise el valor ingresado" << endl;
+			break;
+		}
+		Sleep(1500);
+		system("cls");
+	}
+}
 
 void menuJuego(){
 	char tablero[10][20];
@@ -449,8 +493,7 @@ void menuJuego(){
 		
 		switch(opcion){
 			case 1: 
-				cargarTablero(tablero, 10, 20);
-				MyL(tablero);
+				menuMyL(tablero);
 				break;
 			case 2:
 				cout << "Actualmente esta opcion no esta disponible." << endl;
@@ -462,7 +505,7 @@ void menuJuego(){
 				cout << "ERROR - Revise el valor ingresado" << endl;
 				break;
 		}
-		Sleep(1500);
+		if(opcion != 1) Sleep(1500);
 		system("cls");
 	}
 }

@@ -19,7 +19,7 @@ current_source=archivo.cpp
 path_char=\
 [source]
 path=archivo.cpp
-cursor=461:14
+cursor=238:19
 open=true
 [source]
 path=algoritmos numericos.cpp
