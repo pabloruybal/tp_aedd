@@ -439,7 +439,23 @@ void MyL(char tablero[10][20]){
 	
 void explicarJuego(){
 	system("cls");
-	cout << "hola" <<endl;
+	cout << "Imagina que tienes un tablero oculto donde se han escondido aves '^' en el cielo" << endl;
+	cout << "(en las primeras filas) y piedras 'X' que pueden ocupar varias celdas en la parte baja" << endl;
+	cout << "(con alturas variables)." << endl << endl;
+	
+	cout << "Tu tarea es ingresar coordenadas para descubrir las celdas:" << endl << endl;
+	
+	cout << "-----------------------------------------------------" << endl;
+	cout << "Si adivinas correctamente (es decir, si en esa celda hay una parte de un objeto)," << endl;
+	cout << "se te mostrara el simbolo correspondiente y se sumara un punto a tu puntaje." << endl;
+	cout << "Si fallas, veras un mensaje que te indicara \"Aire\" o \"Tierra\" segun corresponda," << endl;
+	cout << "y la celda se revelara mostrando el entorno." << endl;
+	cout << "-----------------------------------------------------" << endl << endl;
+	
+	cout << "El reto es ir descubriendo la mayor cantidad de objetos hasta revelar todo el tablero" << endl;
+	cout << "o decidir terminar antes, para conocer tu puntaje." << endl;
+	cout << "Una vez completada esta etapa, el Reino Champinon va a quedar visible" << endl;
+	cout << "y se va a dar paso a la simulacion en la que intervienen los personajes Mario y Luigi." << endl << endl;
 	system("pause");
 }
 
